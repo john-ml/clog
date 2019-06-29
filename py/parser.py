@@ -36,8 +36,10 @@ class ClogVisitor(NodeVisitor):
         for s in statements:
             if is_statement(s):
                 stmts.append(s)
+            elif s.rhs != []:
+                raise ValueError('Bad query: {}'.format(s))
             else:
-                queries.append(s)
+                queries.append(s.lhs)
         return Program(stmts, queries)
 
     def visit_statement(self, _, __):
@@ -85,23 +87,28 @@ class ClogVisitor(NodeVisitor):
     def generic_visit(self, node, visited_children):
         return visited_children or node
 
-print(str(ClogVisitor().visit(grammar.parse("""
-Man Socrates.
-Mortal x <- Man x.
-Mortal ?x.
+def parse(s):
+    return ClogVisitor().visit(grammar.parse(s))
 
-App Nil xs xs.
-App (Cons x xs) ys (Cons x zs) <- Cons xs ys zs.
+if __name__ == '__main__':
+    print(str(ClogVisitor().visit(grammar.parse("""
+    Man Socrates.
+    Mortal x <- Man x.
+    Mortal ?x.
 
-Last xs x <- App ys (Cons x Nil) xs.
+    App Nil xs xs.
+    App (Cons x xs) ys (Cons x zs) <- Cons xs ys zs.
 
-Last (Cons 1 (Cons 2 (Cons 3 Nil))) ?y.
+    Last xs x <- App ys (Cons x Nil) xs.
 
-Foo x <- Bar x, Baz x.
+    Last (Cons 1 (Cons 2 (Cons 3 Nil))) ?y.
 
-Fac 0 0.
-Fac n r <-
-  Sub n 1 m,
-  Fac m p,
-  Mul n m r.
-"""))))
+    Foo x <- Bar x, Baz x.
+
+    Fac 0 0.
+    Fac n r <-
+      Sub n 1 m,
+      Fac m p,
+      Mul n m r.
+    """))))
+
