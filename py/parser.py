@@ -30,7 +30,7 @@ class ClogVisitor(NodeVisitor):
     def visit_program(self, _, __):
         statements, _ = __
         def is_statement(s):
-            return True
+            return s.uvars() == set()
         stmts = []
         queries = []
         for s in statements:
@@ -94,6 +94,8 @@ App Nil xs xs.
 App (Cons x xs) ys (Cons x zs) <- Cons xs ys zs.
 
 Last xs x <- App ys (Cons x Nil) xs.
+
+Last (Cons 1 (Cons 2 (Cons 3 Nil))) ?y.
 
 Foo x <- Bar x, Baz x.
 
