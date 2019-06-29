@@ -10,6 +10,9 @@ pub fn build(b: *Builder) void {
     b.default_step.dependOn(&clog.step);
     b.installArtifact(clog);
 
+    const run = b.step("run", "Run the executable");
+    run.dependOn(&clog.run().step);
+
     generateTests(b);
 }
 
