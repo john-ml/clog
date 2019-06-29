@@ -123,10 +123,22 @@ class UF:
     def __init__(self, queries):
         self.next_fresh = 0
         self.ids = dict(
-          (i, i)
-          for q in queries 
-          for i in q.uvars()) # Map ids to their parents
+            (i, i)
+            for q in queries 
+            for i in q.uvars()) # Map ids to their parents
         self.keys = dict() # Map ids to expressions
+        self.old = []
+    
+    def push(self):
+        self.old.append((
+            dict(self.ids),
+            dict(self.keys)))
+
+    def pop(self):
+        self.ids, self.keys = self.old.pop()
+
+    def drop(self):
+        self.old.pop()
 
     def fresh(self):
         i = str(self.next_fresh)

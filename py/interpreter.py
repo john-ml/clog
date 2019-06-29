@@ -47,13 +47,19 @@ class Interpreter:
             for s in self.statements
             if s.lhs.name == query.name]
         queries = []
+        query_ok = False
         for s in relevant:
             try:
-                #print(f'unify({Cons(s.lhs.args)}, {Cons(query.args)})')
+                print(f'unify({Cons(s.lhs.args)}, {Cons(query.args)})')
+                self.uf.push()
                 self.unify(Cons(s.lhs.args), Cons(query.args))
+                self.uf.drop()
                 queries.extend(s.rhs)
+                query_ok = True
             except UError:
-                pass
+                self.uf.pop()
+        if not query_ok:
+            raise ValueError(f'Unsolvable query: {query}')
         return queries
 
     def step(self):
@@ -91,7 +97,17 @@ if __name__ == '__main__':
           (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))
           (Cons 5 (Cons 6 (Cons 7 (Cons 8 Nil))))
           ?r.
-        App (Cons 1 Nil) ?s (Cons 1 (Cons 2 Nil)).
+        App (Cons 1 (Cons 2 Nil)) ?s (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))).
+        App ?t Nil (Cons 1 Nil).
         """))
         .step().step().step().step().step()
+        .pretty())
+
+    print(
+        Interpreter(parse("""
+        App Nil xs xs.
+        App (Cons x xs) ys (Cons x zs) <- App xs ys zs.
+        App ?t Nil (Cons 1 Nil).
+        """))
+        .step().step()
         .pretty())
