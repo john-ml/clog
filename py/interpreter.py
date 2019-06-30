@@ -11,7 +11,7 @@ class Interpreter:
 
     def eapply(self, statement):
         return statement.subst(
-          dict((v, UVar(self.uf.fresh())) for v in statement.lhs.vars()))
+          dict((v, UVar(self.uf.fresh())) for v in statement.vars()))
 
     def unify(self, e1, e2):
         e1 = self.uf.expand(e1.name) if type(e1) is UVar else e1
@@ -50,7 +50,7 @@ class Interpreter:
         query_ok = False
         for s in relevant:
             try:
-                print(f'unify({Cons(s.lhs.args)}, {Cons(query.args)})')
+                #print(f'unify({Cons(s.lhs.args)}, {Cons(query.args)})')
                 self.uf.push()
                 self.unify(Cons(s.lhs.args), Cons(query.args))
                 self.uf.drop()
@@ -107,7 +107,17 @@ if __name__ == '__main__':
         Interpreter(parse("""
         App Nil xs xs.
         App (Cons x xs) ys (Cons x zs) <- App xs ys zs.
-        App ?t Nil (Cons 1 Nil).
+        App ?t (Cons 3 Nil) (Cons 1 (Cons 2 (Cons 3 Nil))).
         """))
-        .step().step()
+        .step().step().step()
+        .pretty())
+
+    print(
+        Interpreter(parse("""
+        App Nil xs xs.
+        App (Cons x xs) ys (Cons x zs) <- App xs ys zs.
+        Last xs x <- App ys (Cons x Nil) xs.
+        Last (Cons 1 (Cons 2 (Cons 3 Nil))) ?x.
+        """))
+        .step().step().step().step()
         .pretty())
