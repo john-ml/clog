@@ -25,6 +25,7 @@ pub fn build(b: *Builder) void {
 
 fn generateTests(b: *Builder) void {
     const test_files = [_][]const u8 {
+        "src/heap.zig",
         "src/lexer.zig",
     };
 
