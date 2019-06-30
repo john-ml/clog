@@ -59,7 +59,7 @@ class Interpreter:
             except UError:
                 self.uf.pop()
         if not query_ok:
-            raise ValueError(f'Unsolvable query: {query}')
+            raise ValueError(f'Unsolvable query: {query.zonk(self.uf)}')
         return queries
 
     def step(self):

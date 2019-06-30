@@ -44,6 +44,8 @@ class Clause(AST):
         return foldmap(lambda a: a.uvars(), self.args)
     def subst(self, mapping):
         return Clause(self.name, [a.subst(mapping) for a in self.args])
+    def zonk(self, uf):
+        return Clause(self.name, [a.zonk(uf) for a in self.args])
 
 class Cons(AST):
     def __init__(self, exprs):
