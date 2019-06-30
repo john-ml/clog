@@ -122,12 +122,9 @@ class UError(Exception):
     pass
 
 class UF:
-    def __init__(self, queries):
+    def __init__(self, uvars):
         self.next_fresh = 0
-        self.ids = dict(
-            (i, i)
-            for q in queries 
-            for i in q.uvars()) # Map ids to their parents
+        self.ids = dict((i, i) for i in uvars) # Map ids to their parents
         self.keys = dict() # Map ids to expressions
         self.old = []
     
@@ -141,6 +138,13 @@ class UF:
 
     def drop(self):
         self.old.pop()
+
+    def clone(self):
+        res = UF([])
+        res.next_fresh = self.next_fresh
+        res.ids = dict(self.ids)
+        res.keys = dict(self.keys)
+        return res
 
     def fresh(self):
         i = str(self.next_fresh)
