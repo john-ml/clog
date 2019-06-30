@@ -27,6 +27,7 @@ fn generateTests(b: *Builder) void {
     const test_files = [_][]const u8 {
         "src/heap.zig",
         "src/cache.zig",
+        "src/lexer.zig",
     };
 
     const test_step = b.step("test", "Run all test files");

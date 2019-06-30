@@ -35,7 +35,7 @@ pub const StringCache = struct {
         return self.source[offset..offset + self.entries[ref].len];
     }
 
-    pub fn upsert(self: *StringCache, hash: u32, text: []const u8) !StringRef {
+    pub fn upsert(self: *StringCache, text: []const u8) !StringRef {
         // make sure the text is a subset of the source in order to store its offset
         const text_ptr = @ptrToInt(text.ptr);
         const src_ptr = @ptrToInt(self.source.ptr);
@@ -46,6 +46,7 @@ pub const StringCache = struct {
             return error.InvalidText;
 
         // find ref offset and insert if not there
+        const hash = std.hash.Fnv1a_32.hash(text);
         const ref = try self.findStringRef(hash, text);
         if (self.entries[ref].hash == 0) {
             self.entries[ref] = Entry {
@@ -89,9 +90,7 @@ test "string cache" {
     defer cache.destroy();
 
     while (words.next()) |word| {
-        const hash = std.hash.Fnv1a_32.hash(word);
-        const ref = try cache.upsert(hash, word);
-        std.debug.assert(hash == cache.getHash(ref));
+        const ref = try cache.upsert(word);
         std.debug.assert(std.mem.eql(u8, word, cache.getText(ref)));
     }
 }
