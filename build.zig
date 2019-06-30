@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const Builder = std.build.Builder;
 
 pub fn build(b: *Builder) void {
@@ -6,6 +7,12 @@ pub fn build(b: *Builder) void {
     clog.setBuildMode(b.standardReleaseOptions());
     clog.setOutputDir("zig-cache/");
     clog.setMainPkgPath("src/");
+
+    switch (builtin.os) {
+        .linux => {},
+        .windows => clog.setTarget(builtin.arch, builtin.os, builtin.Abi.gnu),
+        else => clog.linkSystemLibrary("c"),
+    }
     
     b.default_step.dependOn(&clog.step);
     b.installArtifact(clog);
@@ -18,6 +25,7 @@ pub fn build(b: *Builder) void {
 
 fn generateTests(b: *Builder) void {
     const test_files = [_][]const u8 {
+        "src/heap.zig",
         "src/lexer.zig",
     };
 
