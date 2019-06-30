@@ -15,7 +15,10 @@ pub const Arena = struct {
     pub fn create(bytes: usize) !Arena {
         const memory = try VirtualMemory.alloc(bytes);
         VirtualMemory.commit(memory[0..COMMIT_SIZE]);
-        
+        return from(memory);
+    }
+
+    pub fn from(memory: []u8) Arena {
         return Arena {
             .top = 0,
             .memory = memory,
@@ -29,12 +32,13 @@ pub const Arena = struct {
 
     pub fn alloc(self: *Arena, bytes: usize) ![]u8 {
         const new_top = self.top + bytes;
-        if (new_top >= self.memory.len)
+        if (new_top > self.memory.len)
             return error.OutOfMemory;
 
         if (builtin.os == .windows and new_top >= self.commit_at) {
             self.commit_at += std.math.max(COMMIT_SIZE, new_top);
-            VirtualMemory.commit(self.memory[0..self.commit_at]);
+            const offset = std.math.min(self.memory.len, self.commit_at);
+            VirtualMemory.commit(self.memory[0..offset]);
         }
 
         const memory = self.memory[self.top..bytes];
