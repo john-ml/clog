@@ -1,6 +1,9 @@
 from clogast import *
 from parser import *
 
+class UnsolvableError(Exception):
+    pass
+
 def eapply(uf, statement):
     return statement.subst(
       dict((v, UVar(uf.fresh())) for v in statement.vars()))
@@ -68,7 +71,7 @@ class Interpreter:
             for queries, uf in self.universes
             for u in step_universe(queries, uf)]
         if universes == []:
-            raise ValueError('Unsolvable query: ')
+            raise UnsolvableError('Unsolvable query: ')
         self.universes = universes
         return self
 

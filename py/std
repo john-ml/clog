@@ -1,0 +1,16 @@
+App Nil xs xs.
+App (Cons x xs) ys (Cons x zs) <- App xs ys zs.
+
+Last xs x <- App _ (Cons x Nil) xs.
+
+Zip Nil _ Nil.
+Zip _ Nil Nil.
+Zip (Cons x xs) (Cons y ys) (Cons (Pair x y) zs) <- Zip xs ys zs.
+
+Rev Nil Nil.
+Rev (Cons x ys) zs <-
+  Rev xs ys, 
+  App xs (Cons x Nil) zs.
+
+Cat Nil Nil.
+Cat (Cons xs yss) zs <- Cat yss ys, App xs ys zs.

@@ -20,7 +20,7 @@ grammar = Grammar(
     uvar          = ws "?" ident_
     cons          = ws "(" expression+ ws ")"
 
-    ident_        = ~"[a-z][a-zA-Z0-9_]*"
+    ident_        = ~"[_a-z][a-zA-Z0-9_]*"
     proper_ident_ = ~"[A-Z][a-zA-Z0-9_]*"
     ws            = ~"\s*"
     """
