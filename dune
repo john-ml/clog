@@ -1,0 +1,3 @@
+(executable
+  (name clog))
+(include_subdirs unqualified)
