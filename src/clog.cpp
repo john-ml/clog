@@ -50,9 +50,10 @@ bool unify(term& s, term& t) {
   if (t.is_free()) { t.set_ref(&s); return true; }
   if (s.is_link()) return unify(*s, t);
   if (t.is_link()) return unify(s, *t);
+  if (s.is_var && t.is_var && s.data == t.data) return true;
   if (s.is_inst()) { term old = t; t = *s; return unify(old, *s); }
   if (t.is_inst()) { term old = s; s = *t; return unify(old, *t); }
-  if (s.is_ctr && t.is_ctr && s.arity() == t.arity() && s.id() == t.id()) {
+  if (s.is_ctr && t.is_ctr && s.data == t.data) {
     for (size_t i = 0; i < s.arity(); ++i)
       if (!unify(s[i], t[i]))
         return false;
