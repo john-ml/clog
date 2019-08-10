@@ -8,79 +8,123 @@
 
 namespace clog {
 
-struct term {
-  size_t data : 61;
-  bool is_ctr : 1;
-  bool is_var : 1;
-  bool is_ptr : 1;
-  char children[0];
+// -------------------- Memory --------------------
 
-  term* to_ptr() const { return reinterpret_cast<term*>(data << 3); }
-  term& operator*() const { return *to_ptr(); }
-  bool is_free() const { return is_var && to_ptr() == this; }
-  bool is_link() const { return is_var && to_ptr()->is_var; }
-  bool is_inst() const { return is_var && !to_ptr()->is_var; }
-  size_t arity() const { return data >> 32; }
-  size_t id() const { return data & 0xfffffffful; }
-
-  term& operator[](size_t n) { return reinterpret_cast<term*>(children)[n]; }
-  void set_ref(term* t) { data = reinterpret_cast<size_t>(t) >> 3; }
-
-  friend std::ostream& operator<<(std::ostream& o, term& t) {
-    if (t.is_var) o << '?' << t.to_ptr();
-    else if (t.is_ptr) o << *t;
-    else if (t.is_ctr) {
-      o << '(';
-      for (size_t i = 0; i < t.arity(); ++i) {
-        o << t[i];
-        if (i != t.arity() - 1)
-          o << ' ';
-      }
-      o << ')';
-    }
-  }
+template<typename T>
+struct mem {
+  T* end;
+  T data[0];
 };
-static_assert(sizeof(term) == sizeof(size_t));
 
-// TODO: store mutable updates to allow for backtracking
-bool unify(term& s, term& t) {
-  if (s.is_ptr) return unify(*s, t);
-  if (t.is_ptr) return unify(s, *t);
-  if (s.is_free()) { s.set_ref(&t); return true; }
-  if (t.is_free()) { t.set_ref(&s); return true; }
-  if (s.is_link()) return unify(*s, t);
-  if (t.is_link()) return unify(s, *t);
-  if (s.is_var && t.is_var && s.data == t.data) return true;
-  if (s.is_inst()) { term old = t; t = *s; return unify(old, *s); }
-  if (t.is_inst()) { term old = s; s = *t; return unify(old, *t); }
-  if (s.is_ctr && t.is_ctr && s.data == t.data) {
-    for (size_t i = 0; i < s.arity(); ++i)
-      if (!unify(s[i], t[i]))
-        return false;
-    return true;
-  }
-  return false;
+// Assume result is 8-aligned
+template<typename T>
+mem<T>* mmap_alloc(size_t bytes) {
+  auto res = reinterpret_cast<mem<T>*>(mmap(
+    nullptr, bytes,
+    PROT_READ | PROT_WRITE,
+    MAP_PRIVATE | MAP_ANONYMOUS,
+    -1, 0));
+  res->end = &res->data[0];
+  return res;
 }
 
-const size_t MEM_SIZE = 1ul << 40;
+// -------------------- Term representation --------------------
+//
+// Term
+//   = ?x + A + [Term]
+//   = ?x + A + Cell
+//   = *(Term + A + Cell)
+//   = *Term + A + *Cell
+// 
+// Cell = (n : Nat) Term[n]
 
-struct mem {
-  term terms[0];
+constexpr uint64_t
+  VAR = 0ul,
+  LIT = 1ul,
+  CTR = 2ul,
+  LNK = 3ul;
+
+struct term;
+struct cell;
+
+// Variant tags for constructors
+struct var_t {}; const var_t var;
+struct lit_t {}; const lit_t lit;
+struct ctr_t {}; const ctr_t ctr;
+struct link_t {}; const link_t link;
+
+struct term {
+  uint64_t a;
+
+  // Assume p is 4-aligned
+  term(var_t _, term* p) : a(reinterpret_cast<uint64_t>(p) | VAR) {}
+  term(lit_t _, uint64_t id) : a(id | LIT) {}
+  term(ctr_t _, cell* p) : a(reinterpret_cast<uint64_t>(p) | CTR) {}
+  term(link_t _, term* p) : a(reinterpret_cast<uint64_t>(p) | LNK) {}
+
+  uint64_t ty() const { return a & 3ul; }
+
+  // Assume ty() = VAR = 0
+  term* var() { return reinterpret_cast<term*>(a); }
+  term& operator*() { return *var(); } 
+
+  // Assume ty() = LIT
+  uint64_t lit() { return a; }
+
+  // Assume ty() = CTR
+  cell* ctr() { return reinterpret_cast<cell*>(a & ~3ul); }
+
+  // Assume ty() = INST
+  term* inst() { return reinterpret_cast<term*>(a & ~3ul); }
+
+  friend std::ostream& operator<<(std::ostream& o, term& t);
 };
 
-auto pool = reinterpret_cast<mem*>(mmap(
-  nullptr, MEM_SIZE,
-  PROT_READ | PROT_WRITE,
-  MAP_PRIVATE | MAP_ANONYMOUS,
-  -1, 0));
-
+struct cell {
+  uint64_t len;
+  term subs[0];
 };
+
+auto heap = mmap_alloc<term>(1ul << 40);
+auto undo = mmap_alloc<term>(1ul << 20);
+
+void fail() {}
+
+void unify(term* s, term* t) {
+  // A ~ A and physical equality of subtrees
+  if (s->a == t->a) return;
+  // (?x -> ?y) ~ (?z -> ?w) <== ?y ~ ?w
+  if (s->ty() == VAR) while (s->var() != s) s = s->var();
+  if (t->ty() == VAR) while (t->var() != t) t = t->var();
+  // ?x ~ ?y <== ?x -> ?y
+  if (s->ty() == VAR && t->ty() == VAR) s->a = reinterpret_cast<size_t>(t);
+  // ?x ~ t <== x -> t
+  else if (s->ty() == VAR) *s = {link, t};
+  else if (t->ty() == VAR) *t = {link, s};
+  // (x -> s) ~ t <== replace t with x -> s; s ~ old t
+  else if (s->ty() == LNK) { term u = *t; t->a = s->a; unify(s, &u); }
+  else if (t->ty() == LNK) { term u = *s; s->a = t->a; unify(t, &u); }
+  // xs... ~ ys... <== len(xs) = len(ys), xs[i] ~ ys[i]
+  else if (s->ty() == CTR && t->ty() == CTR) {
+    auto ss = s->ctr(), ts = t->ctr();
+    if (ss->len != ts->len)
+      fail();
+    else for (auto i = ss->len; i--;)
+      unify(ss->subs + i, ts->subs + i);
+  }
+  else fail();
+}
+
+std::ostream& operator<<(std::ostream& o, term& t) { return o; };
+
+}; // namespace clog
 
 int main() {
+  using namespace clog;
   puts("hi");
-  clog::term s {reinterpret_cast<size_t>(&s) >> 3, false, true, false};
-  clog::term t {reinterpret_cast<size_t>(&t) >> 3, false, true, false};
+  term s = {var, &s};
+  term t = {var, &t};
   std::cout << s << ',' << t << std::endl;
-  std::cout << unify(s, t) << std::endl;
+  unify(&s, &t);
   std::cout << s << ',' << t << std::endl;
 }
