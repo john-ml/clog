@@ -1,0 +1,25 @@
+-- List catenation
+(nil ++ XS) = XS.
+((X :: XS) ++ YS) = (X :: ZS) <== (XS ++ YS) = ZS.
+
+-- List length
+(length nil) = z.
+(length (_ :: XS)) = (s N) <== (length XS) = N.
+
+-- List map
+(map _ nil) = nil.
+(map F (X :: XS)) = (Y :: YS) <== (F X) = Y, (map F XS) = YS.
+
+-- Addition
+(z + M) = M.
+((s N) + M) = (s P) <== (N + M) = P.
+(add N M) = P <== (N + M) = P.
+
+-- Multiplication
+(z * _) = z.
+((s N) * M) = K <== (N * M) = P, (M + P) = K.
+
+-- 3 X ZUV ? (x :: (y :: (z :: nil))) ++ (u :: (v :: nil)) = (X :: (y :: ZUV))
+-- 10 X ? (s (s (s z))) * (s (s (s (s z)))) = X
+
+10 X ? map (add X) (z :: ((s z) :: ((s (s z)) :: ((s (s (s z))) :: nil)))) = ((s (s z)) :: ((s (s (s z))) :: ((s (s (s (s z)))) :: ((s (s (s (s (s z))))) :: nil))))
