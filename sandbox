@@ -13,7 +13,6 @@
 -- Addition
 (z + M) = M.
 ((s N) + M) = (s P) <== (N + M) = P.
-(add N M) = P <== (N + M) = P.
 
 -- Multiplication
 (z * _) = z.
@@ -22,4 +21,4 @@
 -- 3 X ZUV ? (x :: (y :: (z :: nil))) ++ (u :: (v :: nil)) = (X :: (y :: ZUV))
 -- 10 X ? (s (s (s z))) * (s (s (s (s z)))) = X
 
-10 X ? map (add X) (z :: ((s z) :: ((s (s z)) :: ((s (s (s z))) :: nil)))) = ((s (s z)) :: ((s (s (s z))) :: ((s (s (s (s z)))) :: ((s (s (s (s (s z))))) :: nil))))
+10 F ? map F (z :: ((s z) :: ((s (s z)) :: ((s (s (s z))) :: nil)))) = ((s (s z)) :: ((s (s (s z))) :: ((s (s (s (s z)))) :: ((s (s (s (s (s z))))) :: nil))))
