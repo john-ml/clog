@@ -4,6 +4,9 @@ let X = X.
 
 -- Lists
 
+nil : (list _).
+(X :: XS) : (list A) <== XS : (list A), X : A.
+
 nil ++ XS = XS.
 (X :: XS) ++ YS = (X :: ZS) where XS ++ YS = ZS.
 
@@ -19,24 +22,41 @@ zipw F (X :: XS) (Y :: YS) = (Z :: ZS) where
   F X Y = Z,
   zipw F XS YS = ZS.
 
+-- Difference lists
+
+(XS - YS) : (dlist A) <== XS : (list A), YS : (list A).
+
+X :: (XS - YS) = ((X :: XS) - YS).
+
+(XS - YS) ++ (YS - ZS) = (XS - ZS).
+
 -- Naturals
+
+z : nat.
+s N : nat <== N : nat.
 
 z + M = M.
 s N + M = (s P) where N + M = P.
 add N M = P where N + M = P.
 
 z * _ = z.
-s N * M = K where
-  N * M = P,
-  M + P = K.
+s N * M = K where N * M = P, M + P = K.
 mul N M = P where N * M = P.
 
 -- Pairs
 
+pair X Y : (A * B) <== X : A, Y : B.
+
+pair X Y = (pair X Y).
 fst (pair X _) = X.
 snd (pair _ Y) = Y.
 
 -- BinNats
+
+lo : bool.
+hi : bool.
+
+N : bnat <== N : (list bool).
 
 normalized0 (hi :: nil).
 normalized0 (lo :: N) <== normalized0 N.
@@ -90,11 +110,18 @@ nil * _ = nil.
 --   let N = (hi :: (hi :: (hi :: (lo :: (hi :: nil))))),
 --   M * N = P
 
--- 11 * ? (23) = 253
-9 M N P ?
-  let M = (hi :: (hi :: (lo :: (hi :: nil)))),
-  let P = (hi :: (lo :: (hi :: (hi :: (hi :: (hi :: (hi :: (hi :: nil)))))))),
-  M * N = P
+-- -- 11 * ? (23) = 253
+-- 9 M N P ?
+--   let M = (hi :: (hi :: (lo :: (hi :: nil)))),
+--   let P = (hi :: (lo :: (hi :: (hi :: (hi :: (hi :: (hi :: (hi :: nil)))))))),
+--   M * N = P
+
+-- -- Type inference
+-- 9 XS YS ZS T ?
+--   let XS = (hi :: (lo :: (hi :: (hi :: (hi :: (hi :: (hi :: (hi :: nil)))))))),
+--   let YS = (hi :: (hi :: (lo :: (hi :: nil)))),
+--   zipw pair XS YS = ZS,
+--   ZS : T
 
 -- 10 M N P ?
 --   let M = (lo :: (hi :: (lo :: (hi :: nil)))),

@@ -28,6 +28,7 @@ desugar = lambda s: (s
   .replace('::', 'tCONS')
   .replace('++', 'tAPP')
   .replace('+', 'tADD')
+  .replace('-', 'tSUB')
   .replace('*', 'tMUL')
   .replace('**', 'tEXP')
   .replace(':', 'tCOLON')
