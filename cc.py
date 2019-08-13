@@ -2,14 +2,29 @@ import sys
 import os
 from functools import reduce
 
+def collapse(gen):
+  tmp = ''
+  for l in gen:
+    if l.startswith('--') or l.strip() == '':
+      continue
+    if l == l.lstrip():
+      if tmp != '':
+        yield tmp
+      tmp = ''
+    tmp = (tmp + ' ' + l.strip()).strip()
+  if tmp != '':
+    yield tmp
+
 with open(sys.argv[1]) as f:
-  *prog, query = [l 
-    for l in f.readlines()
-    if len(l.strip()) > 0 and not l.startswith('--')]
+  *prog, query = list(collapse(f.readlines()))
 desugar = lambda s: (s
+  .replace(' where ', '__MAGIC_IMPL__')
   .replace(' <== ', '__MAGIC_IMPL__')
   .replace(', ', '__MAGIC_SEP__')
+  .replace('=>', 'tRARR')
   .replace('=', 'tEQ')
+  .replace('>', 'tGTR')
+  .replace('<', 'tLSS')
   .replace('::', 'tCONS')
   .replace('++', 'tAPP')
   .replace('+', 'tADD')
@@ -31,9 +46,10 @@ fuel = reduce(lambda x, _: f's({x})', range(int(fuel)), 'z')
 prog = f'''
 :-op(150, yfx, :).
 :-op(950, xfx, @@).
+tEQUAL(X, X).
 {unlines(prog)}
 :- initialization forall(
-  {fuel}@@({query}),
+  (tEQUAL(FUEL__, {fuel}), FUEL__@@{query}),
   ({', '.join(f"write('{x} = '), writeln({x})" for x in metas)})).
 '''
 
