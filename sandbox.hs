@@ -38,6 +38,12 @@ snd (pair _ Y) = Y.
 
 -- BinNats
 
+normalized0 (hi :: nil).
+normalized0 (lo :: N) <== normalized0 N.
+normalized0 (hi :: (L :: N)) <== normalized0 (L :: N).
+normalized nil.
+normalized (L :: N) <== normalized0 (L :: N).
+
 and lo _ = lo.
 and _ lo = lo.
 and hi P = P.
@@ -72,13 +78,29 @@ adc (L :: M) (R :: N) C = (LR :: P) where
   adc L R C => (LR C1),
   adc M N C1 = P.
 
-add N M = P where adc N M lo = P.
+N + M = P where adc N M lo = P.
 
-normalized0 (hi :: nil).
-normalized0 (lo :: N) <== normalized0 N.
-normalized0 (hi :: (L :: N)) <== normalized0 (L :: N).
-normalized nil.
-normalized (L :: N) <== normalized0 (L :: N).
+nil * _ = nil.
+(lo :: M) * N = (lo :: P) where M * N = P.
+(hi :: M) * N = P where M * N = K, N + (lo :: K) = P.
+
+-- -- 11 * 23 = ? (253)
+-- 10 M N P ?
+--   let M = (hi :: (hi :: (lo :: (hi :: nil)))),
+--   let N = (hi :: (hi :: (hi :: (lo :: (hi :: nil))))),
+--   M * N = P
+
+-- 11 * ? (23) = 253
+9 M N P ?
+  let M = (hi :: (hi :: (lo :: (hi :: nil)))),
+  let P = (hi :: (lo :: (hi :: (hi :: (hi :: (hi :: (hi :: (hi :: nil)))))))),
+  M * N = P
+
+-- 10 M N P ?
+--   let M = (lo :: (hi :: (lo :: (hi :: nil)))),
+--   let P = (hi :: (lo :: (lo :: (lo :: (hi :: nil))))),
+--   add M N = P,
+--   normalized N
 
 -- 3 X ZUV ? (x :: (y :: (z :: nil))) ++ (u :: (v :: nil)) = (X :: (y :: ZUV))
 -- 10 X ? (s (s (s z))) * (s (s (s (s z)))) = X
@@ -88,9 +110,3 @@ normalized (L :: N) <== normalized0 (L :: N).
 
 -- 10 N ? add (lo :: (hi :: (lo :: (hi :: nil)))) (hi :: (hi :: (hi :: nil))) = N
 -- 10 M N ? add M N = (hi :: (lo :: (lo :: (lo :: (hi :: nil)))))
-
-10 M N P ?
-  let M = (lo :: (hi :: (lo :: (hi :: nil)))),
-  let P = (hi :: (lo :: (lo :: (lo :: (hi :: nil))))),
-  add M N = P,
-  normalized N
