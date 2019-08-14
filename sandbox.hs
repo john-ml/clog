@@ -104,31 +104,11 @@ nil * _ = nil.
 (lo :: M) * N = (lo :: P) where M * N = P.
 (hi :: M) * N = P where M * N = K, N + (lo :: K) = P.
 
--- -- Binary multiplication: 11 * 23 = ?(253)
--- 10 M N P ?
---   let M = (hi :: (hi :: (lo :: (hi :: nil)))),
---   let N = (hi :: (hi :: (hi :: (lo :: (hi :: nil))))),
---   M * N = P
+-- Typed SK
 
--- -- Binary division: 11 * ?(23) = 253
--- 9 M N P ?
---   let M = (hi :: (hi :: (lo :: (hi :: nil)))),
---   let P = (hi :: (lo :: (hi :: (hi :: (hi :: (hi :: (hi :: (hi :: nil)))))))),
---   M * N = P
-
--- Type inference
-9 XS YS ZS T ?
-  let XS = (hi :: (lo :: (hi :: (hi :: (hi :: (hi :: (hi :: (hi :: nil)))))))),
-  let YS = (hi :: (hi :: (lo :: (hi :: nil)))),
-  zipw pair XS YS = ZS,
-  ZS : T
-
--- -- Binary subtraction: 10 + ?(7) = 17
--- 10 M N P ?
---   let M = (lo :: (hi :: (lo :: (hi :: nil)))),
---   let P = (hi :: (lo :: (lo :: (lo :: (hi :: nil))))),
---   add M N = P,
---   normalized N
+s : ((R -> (A -> B)) -> ((R -> A) -> (R -> B))).
+k : (A -> (_ -> A)).
+(F $ X) : B <== F : (A -> B), X : A.
 
 -- -- List concatenation: [x, y, z] ++ [u, v] = ?(x) :: y :: ?([z, u, v])
 -- 3 X ZUV ? (x :: (y :: (z :: nil))) ++ (u :: (v :: nil)) = (X :: (y :: ZUV))
@@ -141,3 +121,35 @@ nil * _ = nil.
 
 -- -- Zipwith: zipWith (+) [0, 1, 2, 3] [2, 3, 4, 5] = ?([(0, 2), (1, 3), (2, 4), (3, 5)])
 -- 10 XS ? (zipw add (z :: ((s z) :: ((s (s z)) :: ((s (s (s z))) :: nil)))) ((s (s z)) :: ((s (s (s z))) :: ((s (s (s (s z)))) :: ((s (s (s (s (s z))))) :: nil))))) = XS
+
+-- -- Binary subtraction: 10 + ?(7) = 17
+-- 10 M N P ?
+--   let M = (lo :: (hi :: (lo :: (hi :: nil)))),
+--   let P = (hi :: (lo :: (lo :: (lo :: (hi :: nil))))),
+--   add M N = P,
+--   normalized N
+
+-- -- Binary multiplication: 11 * 23 = ?(253)
+-- 10 M N P ?
+--   let M = (hi :: (hi :: (lo :: (hi :: nil)))),
+--   let N = (hi :: (hi :: (hi :: (lo :: (hi :: nil))))),
+--   M * N = P
+
+-- -- Binary division: 11 * ?(23) = 253
+-- 9 M N P ?
+--   let M = (hi :: (hi :: (lo :: (hi :: nil)))),
+--   let P = (hi :: (lo :: (hi :: (hi :: (hi :: (hi :: (hi :: (hi :: nil)))))))),
+--   M * N = P
+
+-- -- Type inference
+-- 9 XS YS ZS T ?
+--   let XS = (hi :: (lo :: (hi :: (hi :: (hi :: (hi :: (hi :: (hi :: nil)))))))),
+--   let YS = (hi :: (hi :: (lo :: (hi :: nil)))),
+--   zipw pair XS YS = ZS,
+--   ZS : T
+
+-- -- Type inhabitation
+-- 4 XS ? XS : (list (bool * bool * bool))
+
+-- -- SKI: SKSK = K : forall a b, a -> b -> a
+-- 10 T ? (s $ k $ s $ k) : T

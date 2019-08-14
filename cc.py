@@ -22,11 +22,13 @@ desugar = lambda s: (s
   .replace(' <== ', '__MAGIC_IMPL__')
   .replace(', ', '__MAGIC_SEP__')
   .replace('=>', 'tRARR')
+  .replace('->', 'tRAR')
   .replace('=', 'tEQ')
   .replace('>', 'tGTR')
   .replace('<', 'tLSS')
   .replace('::', 'tCONS')
   .replace('++', 'tAPP')
+  .replace('$', 'tDOLLAR')
   .replace('+', 'tADD')
   .replace('-', 'tSUB')
   .replace('*', 'tMUL')
@@ -45,8 +47,11 @@ i = query.index('?')
 
 fuel = reduce(lambda x, _: f's({x})', range(int(fuel)), 'z')
 prog = f'''
-:-op(150, yfx, :).
-:-op(950, xfx, @@).
+:- op(150, yfx, :).
+:- op(950, xfx, @@).
+:- set_prolog_flag(occurs_check, true).
+% :- use_module(library(tabling)).
+% :- table (@@)/2.
 tEQUAL(X, X).
 {unlines(prog)}
 :- initialization forall(
