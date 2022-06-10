@@ -23,7 +23,7 @@ c : ((A -> (B -> C)) -> (B -> (A -> C))).
 -- foldr : ((A -> (B -> B)) -> (B -> ((list A) -> B))).
 
 -- Deriving list operations
--- ZIP ? ZIP : ((a * b) -> ((list a) -> ((list b) -> (list (a * b)))))
+-- 5 ZIP ? ZIP : ((a * b) -> ((list a) -> ((list b) -> (list (a * b)))))
 
 -- Deriving reader monad operations
 -- 1 PURE ? PURE : (a -> (r -> a))
@@ -34,8 +34,8 @@ c : ((A -> (B -> C)) -> (B -> (A -> C))).
 -- 3 COMPOSE ? COMPOSE : ((b -> c) -> ((a -> b) -> (a -> c)))
 -- 2 ID ? ID : (a -> a)
 -- 5 BB ? BB : ((c -> d) -> ((a -> (b -> c)) -> (a -> (b -> d))))
--- 5 CURRY ? CURRY : (((a * b) -> c) -> (a -> (b -> c)))
--- 5 FLIP ? FLIP : ((a -> (b -> c)) -> (b -> (a -> c)))
+-- 3 CURRY ? CURRY : (((a * b) -> c) -> (a -> (b -> c)))
+4 FLIP ? FLIP : ((a -> (b -> c)) -> (b -> (a -> c)))
 
 -- Deriving cont monad operations
 -- 3 FMAP ? FMAP : ((a -> b) -> (((a -> r) -> r) -> ((b -> r) -> r)))
