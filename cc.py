@@ -76,9 +76,14 @@ run_query(s(Remaining), D, Query) :-
 with open('tmp.pl' if len(sys.argv) <= 2 else sys.argv[2], 'w') as tmp:
   print(prog, file=tmp)
 
-p = subprocess.Popen(['prolog', '-l', 'tmp.pl', '-t', 'halt'], stderr=open(os.devnull, 'w'))
+p = subprocess.Popen(
+    ['prolog', '-l', 'tmp.pl', '-t', 'halt'],
+    stdout=subprocess.PIPE,
+    stderr=open(os.devnull, 'w'))
 try:
-  while True: pass
+  while True:
+    l = p.stdout.readline()
+    if not l: break
+    print(resugar(l.decode().rstrip()))
 except KeyboardInterrupt:
-  p.terminate()
-
+  pass
